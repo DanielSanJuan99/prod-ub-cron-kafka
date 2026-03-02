@@ -45,9 +45,11 @@ public class UbicacionProducerServiceImpl implements UbicacionProducerService {
         System.out.println("Ubicacion enviada a Kafka: " + ubicacion.toString());
     }
 
+    private static final int MENSAJES_POR_CICLO = 2;
+
     @Override
     public void generarYEnviarUbicaciones() {
-        for (int i = 0; i < VEHICULOS.size(); i++) {
+        for (int i = 0; i < MENSAJES_POR_CICLO; i++) {
             UbicacionVehiculoDTO ubicacion = new UbicacionVehiculoDTO();
             ubicacion.setId(System.nanoTime());
             ubicacion.setVehiculoId(VEHICULOS.get(i));

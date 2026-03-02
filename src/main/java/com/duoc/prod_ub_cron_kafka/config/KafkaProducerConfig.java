@@ -15,6 +15,7 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import com.duoc.prod_ub_cron_kafka.dto.UbicacionVehiculoDTO;
 
@@ -38,7 +39,7 @@ public class KafkaProducerConfig {
     NewTopic topicUbicaciones() {
         Map<String, String> configs = new HashMap<>();
         configs.put("retention.ms", "43200000"); // 12 horas
-        return new NewTopic(TOPIC_UBICACIONES, 3, (short) 2).configs(configs);
+        return new NewTopic(TOPIC_UBICACIONES, 3, (short) 1).configs(configs);
     }
 
     @Bean
@@ -47,6 +48,7 @@ public class KafkaProducerConfig {
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         configProps.put(ProducerConfig.PARTITIONER_CLASS_CONFIG,
                 "org.apache.kafka.clients.producer.RoundRobinPartitioner");
         return new DefaultKafkaProducerFactory<>(configProps);

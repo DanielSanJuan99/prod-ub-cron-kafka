@@ -1,14 +1,14 @@
 # prod-ub-cron-kafka
 
-Microservicio productor que simula la generación de ubicaciones GPS de vehículos del transporte público (buses) en Santiago de Chile. Genera datos para 5 buses en 5 rutas distintas y los publica automáticamente en un topic de Apache Kafka cada 5 minutos mediante un CRON programado.
+Microservicio productor que simula la generación de ubicaciones GPS de vehículos del transporte público (buses) en Santiago de Chile. Genera datos para 2 buses en 2 rutas distintas y los publica automáticamente en un topic de Apache Kafka cada 1 minuto mediante un CRON programado.
 
 ## Tecnologías
 
 - Java 21
 - Spring Boot 3.3.1
 - Spring Kafka
-- Apache Kafka (3 brokers)
-- Docker
+- Apache Kafka (1 broker — optimizado para despliegue en EC2)
+- Docker (imagen multi-plataforma: linux/amd64, linux/arm64)
 
 ## Puerto
 
@@ -20,7 +20,7 @@ Microservicio productor que simula la generación de ubicaciones GPS de vehícul
 
 | Dirección | Topic | Particiones | Réplicas | Retención |
 |-----------|-------|-------------|----------|-----------|
-| Produce   | `ubicaciones_vehiculos` | 3 | 2 | 12 horas |
+| Produce   | `ubicaciones_vehiculos` | 3 | 1 | 12 horas |
 
 ## Endpoints REST
 
@@ -30,7 +30,7 @@ Base: `/api/ubicaciones`
 |--------|------|-------------|
 | `POST` | `/api/ubicaciones` | Envía una ubicación manual a Kafka |
 | `POST` | `/api/ubicaciones/batch` | Envía múltiples ubicaciones a Kafka |
-| `POST` | `/api/ubicaciones/generar` | Trigger manual del CRON (genera 5 ubicaciones simuladas) |
+| `POST` | `/api/ubicaciones/generar` | Trigger manual del CRON (genera 2 ubicaciones simuladas) |
 | `GET`  | `/api/ubicaciones/health` | Health check del servicio |
 
 ## Estructura del mensaje producido
@@ -48,9 +48,9 @@ Base: `/api/ubicaciones`
 
 ## Programación CRON
 
-- **Expresión:** `0 */5 * * * *` (cada 5 minutos)
+- **Expresión:** `0 */1 * * * *` (cada 1 minuto)
 - **Configurable:** propiedad `ubicacion.cron.expression`
-- Genera 1 ubicación por cada uno de los 5 vehículos (BUS-001 a BUS-005)
+- Genera 2 ubicaciones por ciclo (BUS-001 y BUS-002)
 
 ## Ejecución
 
@@ -68,9 +68,15 @@ docker compose up -d prod-ub-cron-kafka
 ```bash
 docker build -t prod-ub-cron-kafka .
 docker run -p 8081:8081 \
-  -e SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092 \
+  -e SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092 \
   --network kafka-net \
   prod-ub-cron-kafka
+```
+
+### Imagen Docker Hub
+
+```bash
+docker pull dimmox/prod-ub-cron-kafka:latest
 ```
 
 ### Local con Maven
@@ -79,11 +85,11 @@ docker run -p 8081:8081 \
 ./mvnw spring-boot:run
 ```
 
-Requiere Kafka corriendo en `localhost:29092,localhost:39092,localhost:49092`.
+Requiere Kafka corriendo en `localhost:29092`.
 
 ## Variables de entorno
 
 | Variable | Descripción | Valor por defecto |
 |----------|-------------|-------------------|
-| `SPRING_KAFKA_BOOTSTRAP_SERVERS` | Brokers Kafka | `localhost:29092,localhost:39092,localhost:49092` |
+| `SPRING_KAFKA_BOOTSTRAP_SERVERS` | Brokers Kafka | `kafka-1:9092` |
 | `SERVER_PORT` | Puerto del servicio | `8081` |
